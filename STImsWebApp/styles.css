@@ -1,0 +1,166 @@
+
+.container {
+  width: 100%;
+  text-align: center
+}
+
+body{
+  background-color: #01579b;  
+}
+
+h1{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #fff200;
+}
+
+h3{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #fff200;
+}
+
+hide{
+  display: none;
+}
+.center {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.item {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.sideButtons{
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+.labelColor{
+  color: #fff4e5;
+}
+
+button {
+  float: left;
+  margin: 3px;
+  padding: 10px 24px;
+  font-size: 16px;
+  size: 30px;
+  border-radius: 6px;
+  cursor: pointer;
+  background-color: rgb(4, 143, 236);
+  color: #fff4e5;
+  font-family: 'Times New Roman', Times, serif;
+  border: 1px solid #c8a439;
+}
+button:hover {background-color: #022d8a}
+button:active {
+  background-color: #0671d4;
+  box-shadow: 0 5px #010e46;
+  transform: translateY(4px);
+}
+.centerButton{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#btnSignOut{
+  background-color: rgb(250, 0, 0);
+}
+
+.hyperLink{
+  border: none;
+  background-color: inherit;
+  margin-top: 14px;
+  font-size: 16px;
+  cursor: pointer;
+  display: inline-block;
+  text-align: center;
+  color: #c8a439;
+  
+}
+
+
+
+p{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #c8a439;
+}
+
+img{
+  display: block;
+  margin: auto;
+  width: 35%;
+  height: auto;
+}
+
+.centerQR{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+#backgroundQRTemplate{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.textFieldColor{
+  color: #fff4e5;
+  background-color: #051853;
+  margin-top: 5px;
+  width: 200px;
+  height: 30px;
+  font-size: 16px;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+div{
+  color: #fff4e5;
+}
+
+.spinnerClass{
+  display: flex;
+  align-items: center;
+
+}
+
+input[type="radio"] {
+  width: 35px;
+  height: 35px;
+}
+
+.spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.spinner i {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+
+
+
+}
