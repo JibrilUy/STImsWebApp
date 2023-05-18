@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Create a STIms Account</title>
+
+    <link rel="icon" type="image/png" href="stims-logo-png.png">
+    <link rel="stylesheet" href="styles.css" />
+
+  </head>
+
+  <body>
+
+    <img src="stims-logo-png.png" alt="stims-logo">
+    <div class="sideButtons" id="divVerifyLink">
+
+    </div>
+
+    <h1 id="h1CreateAccount" >Create a STIms Account</h1>
+
+    <div class="center" id="formCreateAccount">
+
+
+      <label for="my-text-field" class="labelColor" >Email:</label>
+      <input type="email" id="textFieldEmailId" class="textFieldColor" maxlength="30"></label><br>
+
+      <label for="password" class="labelColor">Password:</label>
+      <input type="password" id="textFieldPassword" class="textFieldColor"><br>
+
+      <label for="confirmPassword" class="labelColor">Confirm Password:</label>
+      <input type="password" id="textFieldConfirmPassword" class="textFieldColor""><br>
+
+      <button type="button" id="btnCreateAccount">Create Account</button>
+      <button type="button" id="btnGotAccount" class="hyperLink">Got an Account? Login Here</button>
+
+    </div>
+
+
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.21.0/firebase-app.js";
+      import { getAuth, createUserWithEmailAndPassword, onAuthStateChanged, browserSessionPersistence, sendEmailVerification } from "https://www.gstatic.com/firebasejs/9.21.0/firebase-auth.js";
+      import { getDatabase, ref, set, onValue , child, push } from "https://www.gstatic.com/firebasejs/9.21.0/firebase-database.js";
+
+      const firebaseConfig = { 
+        apiKey: "AIzaSyBt_ZiqpyZ8oo1iqTCoPlFEMnT8rnfSVIQ",
+        authDomain: "stims-v9.firebaseapp.com",
+        databaseURL: "https://stims-v9-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "stims-v9",
+        storageBucket: "stims-v9.appspot.com",
+        messagingSenderId: "175201013538",
+        appId: "1:175201013538:web:c838301914d5d4b46bdf7b",
+        measurementId: "G-8NZD1B35VV"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getDatabase(app);    
+      
+      let accCreated = false;
+      let inputChecked = false;
+      let isEmailSent = false;
+
+      let userEmail;
+      let password;
+      let confirmPassword;
+      let currentUserCredential;
+
+      const btnCreateAccount = document.getElementById("btnCreateAccount");
+      const btnGotAccount = document.getElementById("btnGotAccount");
+      const btnVerifiedAccount = document.getElementById("btnVerifiedAccount");
+
+      btnGotAccount.addEventListener("click", () => {
+        window.location.href = "index.html";
+
+      });
+
+      btnCreateAccount.addEventListener("click", () =>{
+
+        userEmail = getInputData("EmailId");
+        password = getInputData("Password");
+        confirmPassword = getInputData("ConfirmPassword");
+
+        checkUserInput( userEmail, password, confirmPassword);
+
+        if(!inputChecked){
+          return;
+        }
+
+        createUserWithEmailAndPassword(auth, userEmail, password)
+          .then((userCredential) => {
+            currentUserCredential = userCredential.user;
+            const user = currentUserCredential;
+            const uid = currentUserCredential.uid;
+
+            console.log(`Current UID: ${uid}`);
+            setBrowserPersistence();
+            accCreated = true;
+            hideElements();
+            createBtn();
+            sendEmailLink(user);
+
+
+            })
+            .catch((error) => {
+              alert(error.message);
+            });
+        });
+
+  
+
+      function authStateChanged(){
+        const user = auth.currentUser;
+        const accVerified = user.emailVerified;
+        onAuthStateChanged(auth, (user) => {     
+          if (user && accVerified) {
+            const uid = user.uid;
+            console.log('User is logged in');
+            alert('(ᗒᗨᗕ) Login successfully! (ᗒᗨᗕ)');            
+
+            window.location.href = "HomePage.html";
+          } else {
+            console.log('User is logged out');
+          }    
+        });
+      }
+
+
+      function sendEmailLink(user){
+        sendEmailVerification(user)
+          .then(() => {
+            console.log("Email Verification Sent");
+            alert(`A Verification Email has been sent to ${userEmail}, Please click on the link to verify your account`);
+            
+          })
+          .catch((error) => {
+            console.error(error);
+            alert("Error sending email verification. Please try again later.");
+          });
+      }
+
+      function hideElements(){
+        document.getElementById("formCreateAccount").style.display = "none";
+
+        const h1CreateAccount = document.getElementById("h1CreateAccount");
+        h1CreateAccount.textContent = `Verify your Account`;
+
+
+      }
+
+
+      function createBtn(){
+        const divVerifyLink = document.getElementById("divVerifyLink");
+
+        const btnVerifiedAccount = document.createElement("button");
+        btnVerifiedAccount.textContent = "I have Verified my Account";
+        btnVerifiedAccount.onclick = function() {    
+          const confirmation = confirm("!!! ONLY CONFIRM IF YOU HAVE VERIFIED YOUR EMAIL !!!, or you will have to make a New Account");
+
+          if (confirmation) {
+          window.location.href = "FormPage.html";
+        } 
+
+        }
+
+        const btnResendLink = document.createElement("button");
+        btnResendLink.textContent = "Resend Link";
+        btnResendLink.onclick = function() {
+          const user = currentUserCredential;
+          sendEmailLink(user);
+          
+        }
+
+        divVerifyLink.appendChild(btnVerifiedAccount);
+        divVerifyLink.appendChild(btnResendLink);
+
+      }
+
+      //send Email and Disable Button
+      function sendEmailAndDisableButton(user, btnResendLink) {           
+        if (!isEmailSent) {
+          sendEmailLink(user);
+          console.log("Link Resent");
+          isEmailSent = true;
+          btnResendLink.disabled = true;         
+        }else{
+          alert(`Link can only be resent every 2 minutes`);
+          setTimeout(() => {
+            btnResendLink.disabled = false;
+            isEmailSent = false;
+          }, 120000); 
+        }
+      }
+
+      function saveUserDataToDB(uid, userName, userEmail, userParentEmail, userStudentNumberId, userSection){
+
+        const suggestionRef = ref(db, `Suggestions/ ${uid}`);
+        set(suggestionRef, `${userName} "," ${uid}`);
+
+        const studentRef = ref(db, `Students/${userSection}/${uid}`);
+        set(studentRef, `${userName}`);
+
+        const userDataRef = ref(db, `UserData/${uid}`);
+        set(userDataRef, {
+          name: userName,
+          email: userEmail,
+          parent_email: userParentEmail,
+          student_number: userStudentNumberId,
+          UID: uid,
+          section: userSection
+        })
+        .then(() => {
+          console.log('Data written to database.');
+          dataSaved = true;
+
+        }).catch((error) => {
+          console.error('Error writing data to database: ', error);
+        });
+      }
+
+      function getInputData(field){
+        const fieldValue = document.getElementById(`textField${field}`).value;
+        return fieldValue;
+      }
+
+      function setBrowserPersistence(){
+        auth.setPersistence(browserSessionPersistence)
+          .then(() => {
+            console.log('Browser Persistence set to local');
+            alert('°˖✧◝(⁰▿⁰)◜✧˖°  Account created successfully! °˖✧◝(⁰▿⁰)◜✧˖°');
+          })
+          .catch((error) => {
+            alert(error);
+          });
+      }
+
+      function checkUserInput(userEmail, password, confirmPassword){
+         
+        if (!userEmail) {
+          alert("Please Enter your Email");
+          return;
+        }       
+        if (!password) {
+          alert("Please Create your Password");
+          return;
+        }
+        if (!confirmPassword) {
+          alert("Please Enter Confirmation Password");
+          return;
+        }
+        if (password.length <= 5 || confirmPassword.length <= 5) {
+          alert('Passwords must be at least 6 characters.');
+          return;
+        }
+        if (password !== confirmPassword) {
+          alert('Passwords do not match.');
+          return;
+        }
+        inputChecked = true;
+      };
+
+
+    </script>
+  </body>
+</html>

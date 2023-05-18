@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+
+    <title>Edit Profile</title>
+    <link rel="icon" type="image/png" href="stims-logo-png.png">
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-........" crossorigin="anonymous" />
+
+
+    </head>
+    <body>
+
+      <img src="stims-logo-png.png" alt="stims-logo">
+
+        <h1>Welcome to STIms </h1>
+
+        <form class="center">
+
+        <div class="centerButton">
+          <button type="button" id="btnSignOut">Sign Out</button>
+        </div>
+
+        </form>
+        <div class="centerButton">
+          <button type="button" id="btnGenerateQRCode">Generate QR Code</button>
+          <button type="button" id="btnDownloadQRCode">Download QR Code</button>
+        </div>
+
+
+
+        <div id="qrcode" class="centerQR">
+          <canvas id="backgroundQRTemplate"></canvas>
+          <div id="qrData"></div>
+        </div>
+
+        
+
+
+
+    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.18.0/firebase-app.js";
+        import { getAuth, signOut, onAuthStateChanged, setPersistence, browserSessionPersistence  } from "https://www.gstatic.com/firebasejs/9.18.0/firebase-auth.js";
+        import { getDatabase, ref, set, onValue , child, push, get } from "https://www.gstatic.com/firebasejs/9.18.0/firebase-database.js";
+
+      const firebaseConfig = { 
+          apiKey: "AIzaSyBt_ZiqpyZ8oo1iqTCoPlFEMnT8rnfSVIQ",
+          authDomain: "stims-v9.firebaseapp.com",
+          databaseURL: "https://stims-v9-default-rtdb.asia-southeast1.firebasedatabase.app",
+          projectId: "stims-v9",
+          storageBucket: "stims-v9.appspot.com",
+          messagingSenderId: "175201013538",
+          appId: "1:175201013538:web:c838301914d5d4b46bdf7b",
+          measurementId: "G-8NZD1B35VV"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getDatabase(app);    
+
+      const user = auth.currentUser;
+      let uid;
+      let userName;
+      var qrGenerated = false;
+      var qrTemplateGenerated = false;
+      var qrTemplateCanvas = document.getElementById("backgroundQRTemplate");
+
+
+      onAuthStateChanged(auth, (user) => {
+        
+
+        if (user) {        
+          uid = user.uid;
+          console.log('User is logged in');
+          console.log('Current user ID:', uid);
+
+          const dbRef = ref(db, `UserData/${uid}`);
+          const childRef = child(dbRef, "name");
+          get(childRef).then((snapshot) => {
+            userName = snapshot.val();
+            console.log(userName);
+          }).catch((error) => {
+            console.error(error);
+          });
+
+        } else {
+          console.log('No user is currently signed in.');
+          window.location.href = "index.html";
+        }
+      });
+  
+  
+
+
+      auth.setPersistence(browserSessionPersistence ).then(() => {
+        console.log('Persistence set to local');
+      })
+      .catch((error) => {
+        alert(error);
+      });
+
+
+
+        const btnGenerateQRCode = document.getElementById("btnGenerateQRCode");
+        btnGenerateQRCode.addEventListener("click", () => {
+
+                qrTemplateCanvas.width = 300;
+                qrTemplateCanvas.height = 450;
+
+                var qrBackgroundImage= new Image();
+                qrBackgroundImage.onload = function(){
+                  templateColor.drawImage(qrBackgroundImage, 0 , 0, qrTemplateCanvas.width, qrTemplateCanvas.height);
+                
+                var stimsLogo = new Image();
+                stimsLogo.onload = function(){
+                  templateColor.drawImage(stimsLogo, qrTemplateCanvas.width/6 ,-20, 200 , 145);
+                  console.log("STIms Logo Drawn");
+                };
+                stimsLogo.src = "stims-logo-png.png";
+                }
+                qrBackgroundImage.src = "qrCodeBackgroundGradient.png";
+
+                var templateColor = qrTemplateCanvas.getContext("2d");
+                console.log("QR Template is generated = " + qrTemplateGenerated);
+                qrTemplateGenerated = true;
+
+              if(qrTemplateGenerated){
+                setTimeout(() => {
+                  console.log("QR Template is generated = " + qrTemplateGenerated);
+
+                  var qrData = document.getElementById("qrData");
+                  qrData.width = 256;
+                  qrData.height = 256;
+                  var qr = new QRCode(qrData, {
+                    text: uid,
+                    width: 256,
+                    height: 256,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                  });
+                  console.log('QR generated');
+
+                  html2canvas(document.getElementById("qrData")).then(function(canvas) {
+                  var qrImage = new Image();
+                  var qrImageData = canvas.toDataURL();
+                  qrImage.src = qrImageData;
+                  console.log("QR Image Saved" + qrImageData);
+                  
+                    qrImage.onload = function(){
+                      console.log("QR Image Loaded");
+                      templateColor.drawImage(qrImage, qrTemplateCanvas.width/13 ,120 , 256 , 256 );
+                      templateColor.font = "30px Lobster";
+                      templateColor.textAlign = "center";
+                      templateColor.fillStyle = "#fff200";
+                      var textX = qrTemplateCanvas.width/2;
+                      var textY = qrTemplateCanvas.height/2 + 185;
+                      templateColor.fillText(userName, textX, textY);
+                      qrData.remove();
+                    };
+                  });
+                  qrGenerated = true;
+                }, 1000);
+              };
+            btnGenerateQRCode.disabled = true;
+        });
+
+        const btnDownloadQRCode = document.getElementById("btnDownloadQRCode");
+        btnDownloadQRCode.addEventListener("click", () => {
+          if (qrGenerated) { 
+          
+              const canvas = document.getElementById('backgroundQRTemplate');
+              const canvasDataUrl = canvas.toDataURL('image/png');
+              const downloadLink = document.createElement('a');
+              downloadLink.download = `STIms_QR_Generated_${userName}.png`;
+              downloadLink.href = canvasDataUrl;
+              document.body.appendChild(downloadLink);
+              downloadLink.click();
+
+              alert('QR Downloaded Complete!');
+              console.log("Download Complete");
+
+          } else {
+            alert('Please generate the QR code first!');
+          };
+        });
+
+
+      const BtnSignOut = document.getElementById("btnSignOut");
+      BtnSignOut.addEventListener("click", () => {
+        const confirmation = confirm("Are you sure you want to sign out?");
+        if (confirmation) {
+          signOut(auth)
+            .then(() => {
+              alert("(っ˘̩╭╮˘̩)っ Sign Out Successfully (ㄒoㄒ)");
+              window.location.href = "index.html";
+            })
+            .catch((error) => {
+              console.log(error);
+            });
+        }
+      });
+
+                
+      </script>
+    </body>
+</html>
